@@ -205,7 +205,17 @@ class LinearClassifierOneVsAll(LinearClassifier):
         """YOUR CODE HERE FOR Q3.2"""
         # NOTE: make sure that you use {-1, 1} labels y for logistic regression,
         #       not {0, 1} or anything else.
-        pass
+        for i in range(k):
+            print(f"Training classifier for class {i} vs. all")
+            
+            
+            y_binary = np.where(y == i, 1, -1)  
+            
+            
+            w_init = np.zeros(d)
+            w_opt, _,_,_ = self.optimize(w_init, X, y_binary)
+            
+            W[i, :] = w_opt
 
         self.W = W
 
@@ -222,8 +232,26 @@ class MulticlassLinearClassifier(LinearClassifier):
 
     def fit(self, X, y):
         """YOUR CODE HERE FOR Q3.4"""
-        pass
+        n, d = X.shape
+        k = len(np.unique(y))  # Number of classes
+
+        # Initialize weight matrix W (k x d) with small random values
+        W_init = np.random.randn(k, d) * 0.01
+
+        # Flatten W into a vector for optimization
+        W_init_flattened = W_init.reshape(-1)
+
+        # Optimize W using gradient-based method
+        W_opt_flattened, _,_,_ = self.optimize(W_init_flattened, X, y)
+
+        # Reshape back into (k, d) matrix
+        self.W = W_opt_flattened.reshape(k, d)
 
     def predict(self, X_hat):
         """YOUR CODE HERE FOR Q3.4"""
-        pass
+        logits = X_hat @ self.W.T  # (m, k)
+
+        # Choose the class with the highest logit
+        y_hat = np.argmax(logits, axis=1)
+
+        return y_hat

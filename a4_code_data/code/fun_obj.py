@@ -177,4 +177,24 @@ class SoftmaxLoss(FunObj):
         """YOUR CODE HERE FOR Q3.4"""
         # Hint: you may want to use NumPy's reshape() or flatten()
         # to be consistent with our matrix notation.
-        pass
+        W = w.reshape(k, d)  # (k, d)
+
+        # Compute class scores (logits)
+        logits = X @ W.T  # (n, k)
+
+        # Compute softmax probabilities
+        exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))  # Stability trick
+        softmax_probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)  # (n, k)
+
+        # Compute softmax loss (negative log likelihood)
+        log_probs = np.log(softmax_probs[np.arange(n), y])
+        f = -np.sum(log_probs) / n  # Average loss over n samples
+
+        # Compute the gradient
+        y_one_hot = np.zeros((n, k))  # (n, k) one-hot encoding
+        y_one_hot[np.arange(n), y] = 1  # Set correct class to 1
+
+        g_matrix = (softmax_probs - y_one_hot).T @ X / n  # (k, d) gradient
+        g = g_matrix.flatten()  # Flatten to match optimizer format
+
+        return f, g
